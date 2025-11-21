@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pysio-hermes-awinda"
-version = "0.0.1"
+dynamic = ["version"]
 requires-python = ">=3.7"
 authors = [
   { name="Maxim Yudayev", email="maxim.yudayev@gmail.com" },
@@ -33,6 +33,9 @@ dependencies = [
   "numpy==1.26.*"
   # "xsensdeviceapi"
 ]
+
+[tool.setuptools.dynamic]
+version = {attr = "hermes.awinda.__version__.__version__"}
 
 [project.urls]
 Homepage = "https://maximyudayev.github.io/hermes"
