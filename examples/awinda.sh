@@ -1,3 +1,12 @@
 #!/bin/sh
-. .venv/bin/activate
-hermes-cli -o ./data --config_file awinda.yml --experiment project=Test type=Awinda trial=0
+source .venv/bin/activate
+
+if [ -f "$FILE" ]; then
+    trial_id=$(cat "$FILE")
+else
+    trial_id=0
+fi
+trial_id=$((trial_id + 1))
+echo "$trial_id" > "$FILE"
+
+hermes-cli -o ./data --config_file ./examples/awinda.yml --experiment project=Test type=Awinda trial=$trial_d

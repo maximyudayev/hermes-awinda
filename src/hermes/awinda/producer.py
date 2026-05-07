@@ -40,12 +40,9 @@ from hermes.awinda.handler import XsensFacade
 class AwindaProducer(Producer):
     """A class for streaming Awinda IMU data."""
 
-    @classmethod
-    def _log_source_tag(cls) -> str:
-        return "awinda"
-
     def __init__(
         self,
+        topic: str,
         host_ip: str,
         logging_spec: LoggingSpec,
         device_mapping: dict[str, str],
@@ -89,6 +86,7 @@ class AwindaProducer(Producer):
         }
 
         super().__init__(
+            topic=topic,
             host_ip=host_ip,
             stream_out_spec=stream_out_spec,
             logging_spec=logging_spec,
@@ -161,7 +159,7 @@ class AwindaProducer(Producer):
                 "counter_onboard": counter_onboard,
             }
 
-            tag: str = "%s.data" % self._log_source_tag()
+            tag: str = "%s.data" % self.topic
             self._publish(tag, process_time_s=process_time_s, data={"awinda-imu": data})
         elif not self._is_continue_capture:
             # If triggered to stop and no more available data, send empty 'END' packet and join.
