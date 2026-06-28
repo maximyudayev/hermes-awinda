@@ -26,22 +26,24 @@
 # ############
 
 from collections import OrderedDict
+from typing import Optional
 
-from hermes.base.stream import Stream
+from hermes.base.data_container import DataContainer
 
 
-class AwindaStream(Stream):
-    """A structure to store Awinda MTws' stream's data."""
+class AwindaDataContainer(DataContainer):
+    """A structure to store Awinda MTws' Node's data."""
 
     def __init__(
         self,
         device_mapping: dict[str, str],
-        num_joints: int = 7,
-        sampling_rate_hz: int = 100,
-        timesteps_before_solidified: int = 0,
-        update_interval_ms: int = 100,
-        transmission_delay_period_s: int | None = None,
-        **_
+        num_joints: Optional[int] = 7,
+        buf_len: Optional[int] = 5000,
+        sampling_rate_hz: Optional[int] = 100,
+        timesteps_before_solidified: Optional[int] = 0,
+        update_interval_ms: Optional[int] = 100,
+        transmission_delay_period_s: Optional[int] = None,
+        **_,
     ) -> None:
         super().__init__()
 
@@ -59,98 +61,107 @@ class AwindaStream(Stream):
 
         self._define_data_notes()
 
-        # When using onLiveDataAvailable, every immediately available packet from each MTw is pushed in its own corresponding Stream.
+        # When using onLiveDataAvailable, every immediately available packet from each MTw is pushed in its own corresponding DataContainer.
         # When using onAllLiveDataAvailable, packets are packaged all at once (potentially for multiple timesteps)
         #   with interpolation of data for steps where some of sensors missed a measurement.
         # Choose the desired behavior for the system later. (currently onAllLiveDataAvailable).
-        self.add_stream(
-            device_name="awinda-imu",
-            stream_name="acceleration",
+        self.add_channel(
+            bundle_name="awinda_imu",
+            channel_name="acceleration",
             data_type="float32",
-            sample_size=(self._num_joints, 3),
+            sample_size=[self._num_joints, 3],
+            buf_len=buf_len,
             sampling_rate_hz=self._sampling_rate_hz,
-            data_notes=self._data_notes["awinda-imu"]["acceleration"],
+            data_notes=self._data_notes["awinda_imu"]["acceleration"],
             timesteps_before_solidified=self._timesteps_before_solidified,
         )
-        self.add_stream(
-            device_name="awinda-imu",
-            stream_name="gyroscope",
+        self.add_channel(
+            bundle_name="awinda_imu",
+            channel_name="gyroscope",
             data_type="float32",
-            sample_size=(self._num_joints, 3),
+            sample_size=[self._num_joints, 3],
+            buf_len=buf_len,
             sampling_rate_hz=self._sampling_rate_hz,
-            data_notes=self._data_notes["awinda-imu"]["gyroscope"],
+            data_notes=self._data_notes["awinda_imu"]["gyroscope"],
             timesteps_before_solidified=self._timesteps_before_solidified,
         )
-        self.add_stream(
-            device_name="awinda-imu",
-            stream_name="magnetometer",
+        self.add_channel(
+            bundle_name="awinda_imu",
+            channel_name="magnetometer",
             data_type="float32",
-            sample_size=(self._num_joints, 3),
+            sample_size=[self._num_joints, 3],
+            buf_len=buf_len,
             sampling_rate_hz=self._sampling_rate_hz,
-            data_notes=self._data_notes["awinda-imu"]["magnetometer"],
+            data_notes=self._data_notes["awinda_imu"]["magnetometer"],
             timesteps_before_solidified=self._timesteps_before_solidified,
         )
-        self.add_stream(
-            device_name="awinda-imu",
-            stream_name="quaternion",
+        self.add_channel(
+            bundle_name="awinda_imu",
+            channel_name="quaternion",
             data_type="float32",
-            sample_size=(self._num_joints, 4),
+            sample_size=[self._num_joints, 4],
+            buf_len=buf_len,
             sampling_rate_hz=self._sampling_rate_hz,
-            data_notes=self._data_notes["awinda-imu"]["quaternion"],
+            data_notes=self._data_notes["awinda_imu"]["quaternion"],
         )
-        self.add_stream(
-            device_name="awinda-imu",
-            stream_name="timestamp",
+        self.add_channel(
+            bundle_name="awinda_imu",
+            channel_name="timestamp",
             data_type="uint32",
-            sample_size=(self._num_joints,),
+            sample_size=[self._num_joints],
+            buf_len=buf_len,
             sampling_rate_hz=self._sampling_rate_hz,
             is_measure_rate_hz=True,  # only 1 stream per device needs to be marked `True` if all streams get new data at a time
-            data_notes=self._data_notes["awinda-imu"]["timestamp"],
+            data_notes=self._data_notes["awinda_imu"]["timestamp"],
         )
-        self.add_stream(
-            device_name="awinda-imu",
-            stream_name="toa_s",
+        self.add_channel(
+            bundle_name="awinda_imu",
+            channel_name="toa_s",
             data_type="float64",
-            sample_size=(self._num_joints,),
+            sample_size=[self._num_joints],
+            buf_len=buf_len,
             sampling_rate_hz=self._sampling_rate_hz,
-            data_notes=self._data_notes["awinda-imu"]["toa_s"],
+            data_notes=self._data_notes["awinda_imu"]["toa_s"],
         )
-        self.add_stream(
-            device_name="awinda-imu",
-            stream_name="counter_onboard",
+        self.add_channel(
+            bundle_name="awinda_imu",
+            channel_name="counter_onboard",
             data_type="uint16",
-            sample_size=(self._num_joints,),
+            sample_size=[self._num_joints],
+            buf_len=buf_len,
             sampling_rate_hz=self._sampling_rate_hz,
-            data_notes=self._data_notes["awinda-imu"]["counter_onboard"],
+            data_notes=self._data_notes["awinda_imu"]["counter_onboard"],
         )
-        self.add_stream(
-            device_name="awinda-imu",
-            stream_name="counter",
+        self.add_channel(
+            bundle_name="awinda_imu",
+            channel_name="counter",
             data_type="uint32",
-            sample_size=(self._num_joints,),
+            sample_size=[self._num_joints],
+            buf_len=buf_len,
             sampling_rate_hz=self._sampling_rate_hz,
-            data_notes=self._data_notes["awinda-imu"]["counter"],
+            data_notes=self._data_notes["awinda_imu"]["counter"],
         )
 
         if self._transmission_delay_period_s:
-            self.add_stream(
-                device_name="awinda-connection",
-                stream_name="transmission_delay",
+            self.add_channel(
+                bundle_name="awinda_connection",
+                channel_name="transmission_delay",
                 data_type="float32",
-                sample_size=(1,),
+                sample_size=[1],
+                buf_len=buf_len,
                 sampling_rate_hz=1.0 / self._transmission_delay_period_s,
-                data_notes=self._data_notes["awinda-connection"]["transmission_delay"],
+                data_notes=self._data_notes["awinda_connection"]["transmission_delay"],
             )
 
     def get_fps(self) -> dict[str, float | None]:
-        return {"awinda-imu": super()._get_fps("awinda-imu", "timestamp")}
+        return {"awinda_imu": super()._get_fps("awinda_imu", "timestamp")}
 
     def _define_data_notes(self) -> None:
         self._data_notes = {}
-        self._data_notes.setdefault("awinda-imu", {})
-        self._data_notes.setdefault("awinda-connection", {})
+        self._data_notes.setdefault("awinda_imu", {})
+        self._data_notes.setdefault("awinda_connection", {})
 
-        self._data_notes["awinda-imu"]["acceleration"] = OrderedDict(
+        self._data_notes["awinda_imu"]["acceleration"] = OrderedDict(
             [
                 (
                     "Description",
@@ -159,12 +170,12 @@ class AwindaStream(Stream):
                 ),
                 ("Units", "meter/second^2"),
                 (
-                    Stream.metadata_data_headings_key,
+                    DataContainer.metadata_data_headings_key,
                     list(self._device_mapping.values()),
                 ),
             ]
         )
-        self._data_notes["awinda-imu"]["gyroscope"] = OrderedDict(
+        self._data_notes["awinda_imu"]["gyroscope"] = OrderedDict(
             [
                 (
                     "Description",
@@ -173,12 +184,12 @@ class AwindaStream(Stream):
                 ),
                 ("Units", "rad/second"),
                 (
-                    Stream.metadata_data_headings_key,
+                    DataContainer.metadata_data_headings_key,
                     list(self._device_mapping.values()),
                 ),
             ]
         )
-        self._data_notes["awinda-imu"]["magnetometer"] = OrderedDict(
+        self._data_notes["awinda_imu"]["magnetometer"] = OrderedDict(
             [
                 (
                     "Description",
@@ -191,21 +202,21 @@ class AwindaStream(Stream):
                     "w.r.t. sensor local coordinate system",
                 ),
                 (
-                    Stream.metadata_data_headings_key,
+                    DataContainer.metadata_data_headings_key,
                     list(self._device_mapping.values()),
                 ),
             ]
         )
-        self._data_notes["awinda-imu"]["quaternion"] = OrderedDict(
+        self._data_notes["awinda_imu"]["quaternion"] = OrderedDict(
             [
                 ("Description", "Quaternion rotation vector [W,X,Y,Z]"),
                 (
-                    Stream.metadata_data_headings_key,
+                    DataContainer.metadata_data_headings_key,
                     list(self._device_mapping.values()),
                 ),
             ]
         )
-        self._data_notes["awinda-imu"]["timestamp"] = OrderedDict(
+        self._data_notes["awinda_imu"]["timestamp"] = OrderedDict(
             [
                 (
                     "Description",
@@ -214,22 +225,22 @@ class AwindaStream(Stream):
                 ),
                 ("Units", "microsecond in range [0, (2^32)-1]"),
                 (
-                    Stream.metadata_data_headings_key,
+                    DataContainer.metadata_data_headings_key,
                     list(self._device_mapping.values()),
                 ),
             ]
         )
-        self._data_notes["awinda-imu"]["toa_s"] = OrderedDict(
+        self._data_notes["awinda_imu"]["toa_s"] = OrderedDict(
             [
                 ("Description", "Time of arrival of the packet w.r.t. system clock."),
                 ("Units", "seconds"),
                 (
-                    Stream.metadata_data_headings_key,
+                    DataContainer.metadata_data_headings_key,
                     list(self._device_mapping.values()),
                 ),
             ]
         )
-        self._data_notes["awinda-imu"]["counter"] = OrderedDict(
+        self._data_notes["awinda_imu"]["counter"] = OrderedDict(
             [
                 (
                     "Description",
@@ -238,24 +249,24 @@ class AwindaStream(Stream):
                 ),
                 ("Range", "[0, (2^32)-1]"),
                 (
-                    Stream.metadata_data_headings_key,
+                    DataContainer.metadata_data_headings_key,
                     list(self._device_mapping.values()),
                 ),
             ]
         )
-        self._data_notes["awinda-imu"]["counter_onboard"] = OrderedDict(
+        self._data_notes["awinda_imu"]["counter_onboard"] = OrderedDict(
             [
                 (
                     "Description",
                     "Index of the sampled packet per device, starting from 0 on 1st read-out and wrapping around after 65535",
                 ),
                 (
-                    Stream.metadata_data_headings_key,
+                    DataContainer.metadata_data_headings_key,
                     list(self._device_mapping.values()),
                 ),
             ]
         )
-        self._data_notes["awinda-connection"]["transmission_delay"] = OrderedDict(
+        self._data_notes["awinda_connection"]["transmission_delay"] = OrderedDict(
             [
                 (
                     "Description",

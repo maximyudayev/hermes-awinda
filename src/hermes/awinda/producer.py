@@ -25,6 +25,8 @@
 #
 # ############
 
+from typing import Optional
+
 from hermes.utils.types import LoggingSpec
 import numpy as np
 from collections import OrderedDict
@@ -33,7 +35,7 @@ from hermes.base.nodes.producer import Producer
 from hermes.utils.zmq_utils import PORT_BACKEND, PORT_SYNC_HOST, PORT_KILL
 from hermes.utils.time_utils import get_time
 
-from hermes.awinda.stream import AwindaStream
+from hermes.awinda.data_container import AwindaDataContainer
 from hermes.awinda.handler import XsensFacade
 
 
@@ -46,13 +48,14 @@ class AwindaProducer(Producer):
         host_ip: str,
         logging_spec: LoggingSpec,
         device_mapping: dict[str, str],
-        sampling_rate_hz: int = 100,
-        num_joints: int = 7,
-        radio_channel: int = 11,
-        port_pub: str = PORT_BACKEND,
-        port_sync: str = PORT_SYNC_HOST,
-        port_killsig: str = PORT_KILL,
-        transmit_delay_sample_period_s: float = float("nan"),
+        buf_len: Optional[int] = 5000,
+        sampling_rate_hz: Optional[int] = 100,
+        num_joints: Optional[int] = 7,
+        radio_channel: Optional[int] = 11,
+        port_pub: Optional[str] = PORT_BACKEND,
+        port_sync: Optional[str] = PORT_SYNC_HOST,
+        port_killsig: Optional[str] = PORT_KILL,
+        transmit_delay_sample_period_s: Optional[float] = float("nan"),
         **_
     ):
         """Constructor of the Awinda IMU trackers Node.
@@ -79,8 +82,9 @@ class AwindaProducer(Producer):
             ]
         )
 
-        stream_out_spec = {
+        data_out_spec = {
             "num_joints": self._num_joints,
+            "buf_len": buf_len,
             "sampling_rate_hz": sampling_rate_hz,
             "device_mapping": self._device_mapping,
         }
@@ -88,7 +92,7 @@ class AwindaProducer(Producer):
         super().__init__(
             topic=topic,
             host_ip=host_ip,
-            stream_out_spec=stream_out_spec,
+            data_out_spec=data_out_spec,
             logging_spec=logging_spec,
             sampling_rate_hz=sampling_rate_hz,
             port_pub=port_pub,
@@ -98,8 +102,8 @@ class AwindaProducer(Producer):
         )
 
     @classmethod
-    def create_stream(cls, stream_spec: dict) -> AwindaStream:
-        return AwindaStream(**stream_spec)
+    def create_data_container(cls, data_spec: dict) -> AwindaDataContainer:
+        return AwindaDataContainer(**data_spec)
 
     def _ping_device(self) -> None:
         return None
@@ -160,7 +164,7 @@ class AwindaProducer(Producer):
             }
 
             tag: str = "%s.data" % self.topic
-            self._publish(tag, process_time_s=process_time_s, data={"awinda-imu": data})
+            self._publish(tag, process_time_s=process_time_s, data={"awinda_imu": data})
         elif not self._is_continue_capture:
             # If triggered to stop and no more available data, send empty 'END' packet and join.
             self._send_end_packet()

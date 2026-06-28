@@ -39,6 +39,7 @@ remote_kill_ip: null
 
 logging_spec:
   stream_period_s     : 10
+  is_quiet            : False
 
   stream_hdf5         : True
   stream_csv          : False
@@ -70,6 +71,7 @@ producer_specs:
       num_joints        : 7
       sampling_rate_hz  : 100
       radio_channel     : 15
+      buf_len           : 5000
 
 
 consumer_specs: []
